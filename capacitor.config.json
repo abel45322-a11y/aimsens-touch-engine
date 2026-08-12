@@ -1,0 +1,17 @@
+{
+  "appId": "com.aimsens.touchengine",
+  "appName": "AimSens Touch Engine",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "backgroundColor": "#090d16"
+  },
+  "plugins": {
+    "TouchEnginePlugin": {
+      "enableHighPrecisionSampling": true,
+      "samplingRateHz": 180
+    }
+  }
+}

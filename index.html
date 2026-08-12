@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AimSens Touch Engine - Oppo A58 Optimized</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00f0ff">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand-title">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+            <line x1="12" y1="3" x2="12" y2="7" stroke="currentColor" stroke-width="2"/>
+            <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2"/>
+            <line x1="3" y1="12" x2="7" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="17" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+          </svg>
+        </div>
+        <div>
+          <h1>AimSens Engine</h1>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Dynamic Sensitivity & Low-Latency Touch</span>
+        </div>
+      </div>
+      <div class="hw-badge">OPPO A58 • 180Hz / 60Hz</div>
+    </header>
+
+    <!-- Main Grid: Controls & Preview -->
+    <div class="main-grid">
+      
+      <!-- Left Panel: Real-Time Configuration Controls -->
+      <section class="panel-card">
+        <div class="card-title">
+          <span>Configuración de Sensibilidad</span>
+          <span style="font-size: 0.8rem; color: var(--accent-cyan);" id="modeLabel">Bézier Dinámico</span>
+        </div>
+
+        <!-- Mode Selector -->
+        <div class="toggle-row">
+          <span class="control-label" style="margin:0;">Modo de Curva</span>
+          <div class="toggle-btn-group">
+            <button class="toggle-btn active" id="btnModeBezier">Curva Bézier</button>
+            <button class="toggle-btn" id="btnModeLinear">Lineal</button>
+          </div>
+        </div>
+
+        <!-- Master Sensitivity -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Sensibilidad Base</span>
+            <span class="control-val" id="valBaseSens">1.00x</span>
+          </div>
+          <input type="range" class="slider" id="sliderBaseSens" min="0.2" max="3.0" step="0.05" value="1.0">
+        </div>
+
+        <!-- Bézier P1 Control (Micro Precision) -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Curva Bézier: Precisión Fina (Arrastre Lento)</span>
+            <span class="control-val" id="valP1">0.05</span>
+          </div>
+          <input type="range" class="slider" id="sliderP1" min="0.0" max="0.5" step="0.01" value="0.05">
+        </div>
+
+        <!-- Bézier P2 Control (Acceleration) -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Curva Bézier: Aceleración Rápida (Giros)</span>
+            <span class="control-val" id="valP2">0.95</span>
+          </div>
+          <input type="range" class="slider" id="sliderP2" min="0.5" max="1.0" step="0.01" value="0.95">
+        </div>
+
+        <!-- Maximum Velocity Cap -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Tope de Velocidad Máxima (Evitar disparo/descontrol)</span>
+            <span class="control-val" id="valMaxVel">4.5 px/ms</span>
+          </div>
+          <input type="range" class="slider" id="sliderMaxVel" min="1.0" max="10.0" step="0.2" value="4.5">
+        </div>
+
+        <!-- Smoothing Noise Filter -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Filtro de Ruido (Anti-Jitter Oppo A58)</span>
+            <span class="control-val" id="valSmooth">72%</span>
+          </div>
+          <input type="range" class="slider" id="sliderSmooth" min="0.1" max="1.0" step="0.02" value="0.72">
+        </div>
+
+        <!-- Curve Visualizer Mini Canvas -->
+        <div class="control-group">
+          <span class="control-label">Gráfica de Respuesta Sensibilidad vs Velocidad</span>
+          <div class="curve-canvas-wrap">
+            <canvas id="curveCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" id="btnSaveConfig">Guardar Configuración</button>
+          <button class="btn-secondary" id="btnReset">Restablecer</button>
+        </div>
+      </section>
+
+      <!-- Right Panel: Interactive Aim Preview & Real-time Metrics -->
+      <section class="panel-card">
+        <div class="card-title">
+          <span>Vista Previa del Motor táctil</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Baja Latencia (Chrome Direct)</span>
+        </div>
+
+        <!-- Touch Pad Canvas -->
+        <div class="canvas-container" id="touchPadWrap">
+          <span class="touch-hint">Arrastra aquí tu dedo para probar la respuesta de la mira</span>
+          <canvas id="previewCanvas"></canvas>
+        </div>
+
+        <!-- Real-time Diagnostic HUD -->
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">Touch Rate</div>
+            <div class="stat-val" id="statTouchHz">180 Hz</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Display FPS</div>
+            <div class="stat-val" id="statFps">60 FPS</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Velocidad</div>
+            <div class="stat-val" id="statVel">0.0 px/ms</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Multiplicador</div>
+            <div class="stat-val" id="statMult">1.00x</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Include Sensitivity Engine -->
+  <script src="engine.js"></script>
+
+  <!-- Application Logic & UI Controller -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('AimSens ServiceWorker registrado'))
+          .catch(err => console.error('SW Error:', err));
+      }
+
+      // Initialize Engine
+      const engine = new TouchEngine({
+        sensitivityMode: 'bezier',
+        baseSensitivity: 1.0,
+        bezierP1x: 0.42,
+        bezierP1y: 0.05,
+        bezierP2x: 0.58,
+        bezierP2y: 0.95,
+        maxVelocity: 4.5,
+        smoothingAlpha: 0.72
+      });
+
+      // Canvas Setup
+      const canvas = document.getElementById('previewCanvas');
+      const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+
+      const curveCanvas = document.getElementById('curveCanvas');
+      const curveCtx = curveCanvas.getContext('2d');
+
+      // Crosshair Reticle State
+      let reticleX = 0;
+      let reticleY = 0;
+      let targetX = 0;
+      let targetY = 0;
+
+      function resizeCanvases() {
+        const wrap = document.getElementById('touchPadWrap');
+        canvas.width = wrap.clientWidth * window.devicePixelRatio;
+        canvas.height = wrap.clientHeight * window.devicePixelRatio;
+
+        const curveWrap = curveCanvas.parentElement;
+        curveCanvas.width = curveWrap.clientWidth * window.devicePixelRatio;
+        curveCanvas.height = curveWrap.clientHeight * window.devicePixelRatio;
+
+        reticleX = canvas.width / 2;
+        reticleY = canvas.height / 2;
+        targetX = reticleX;
+        targetY = reticleY;
+      }
+      resizeCanvases();
+      window.addEventListener('resize', resizeCanvases);
+
+      // Attach Engine to Touch Pad Element
+      engine.attach(document.getElementById('touchPadWrap'));
+
+      // Process Sensitivity Engine Output
+      engine.onDelta((dx, dy, metrics) => {
+        targetX += dx * window.devicePixelRatio;
+        targetY += dy * window.devicePixelRatio;
+
+        // Keep reticle inside bounds
+        targetX = Math.max(20, Math.min(canvas.width - 20, targetX));
+        targetY = Math.max(20, Math.min(canvas.height - 20, targetY));
+
+        // Update HUD
+        document.getElementById('statTouchHz').textContent = metrics.sampleRateHz > 0 ? metrics.sampleRateHz + ' Hz' : '180 Hz';
+        document.getElementById('statFps').textContent = metrics.renderFps + ' FPS';
+        document.getElementById('statVel').textContent = metrics.lastAppliedVelocity.toFixed(2) + ' px/ms';
+        document.getElementById('statMult').textContent = metrics.lastMultiplier.toFixed(2) + 'x';
+      });
+
+      // Render Loop for Aim Preview Canvas
+      function renderPreview() {
+        // Smoothly lerp crosshair position
+        reticleX += (targetX - reticleX) * 0.45;
+        reticleY += (targetY - reticleY) * 0.45;
+
+        // Clear canvas
+        ctx.fillStyle = '#080c14';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Grid
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+        ctx.lineWidth = 1;
+        const step = 40 * window.devicePixelRatio;
+        for (let x = 0; x < canvas.width; x += step) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += step) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+
+        // Draw Reticle / Crosshair
+        ctx.save();
+        ctx.translate(reticleX, reticleY);
+
+        // Outer Ring
+        ctx.strokeStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 12 * window.devicePixelRatio;
+        ctx.lineWidth = 2 * window.devicePixelRatio;
+        ctx.beginPath();
+        ctx.arc(0, 0, 16 * window.devicePixelRatio, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Inner Dot
+        ctx.fillStyle = '#ff007f';
+        ctx.beginPath();
+        ctx.arc(0, 0, 3 * window.devicePixelRatio, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cross Lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 1.5 * window.devicePixelRatio;
+        const len = 10 * window.devicePixelRatio;
+        const gap = 6 * window.devicePixelRatio;
+
+        ctx.beginPath();
+        ctx.moveTo(-len - gap, 0); ctx.lineTo(-gap, 0);
+        ctx.moveTo(gap, 0); ctx.lineTo(len + gap, 0);
+        ctx.moveTo(0, -len - gap); ctx.lineTo(0, -gap);
+        ctx.moveTo(0, gap); ctx.lineTo(0, len + gap);
+        ctx.stroke();
+
+        ctx.restore();
+
+        requestAnimationFrame(renderPreview);
+      }
+      requestAnimationFrame(renderPreview);
+
+      // Render Bézier Sensitivity Response Curve
+      function renderCurveGraph() {
+        const w = curveCanvas.width;
+        const h = curveCanvas.height;
+
+        curveCtx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        curveCtx.fillRect(0, 0, w, h);
+
+        // Grid lines
+        curveCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        curveCtx.lineWidth = 1;
+        curveCtx.beginPath();
+        curveCtx.moveTo(0, h/2); curveCtx.lineTo(w, h/2);
+        curveCtx.stroke();
+
+        // Draw curve
+        curveCtx.strokeStyle = '#00f0ff';
+        curveCtx.lineWidth = 2 * window.devicePixelRatio;
+        curveCtx.shadowColor = '#00f0ff';
+        curveCtx.shadowBlur = 8;
+
+        curveCtx.beginPath();
+        for (let px = 0; px <= w; px += 2) {
+          const normX = px / w;
+          const mult = engine.calculateMultiplier(normX * engine.config.maxVelocity);
+          // Normalize multiplier to canvas height (0.2x -> bottom, 3.0x -> top)
+          const normY = (mult - 0.2) / 2.8;
+          const py = h - normY * h;
+          if (px === 0) curveCtx.moveTo(px, py);
+          else curveCtx.lineTo(px, py);
+        }
+        curveCtx.stroke();
+        curveCtx.shadowBlur = 0;
+      }
+      renderCurveGraph();
+
+      // UI Controls Bindings
+      const sliderBaseSens = document.getElementById('sliderBaseSens');
+      const sliderP1 = document.getElementById('sliderP1');
+      const sliderP2 = document.getElementById('sliderP2');
+      const sliderMaxVel = document.getElementById('sliderMaxVel');
+      const sliderSmooth = document.getElementById('sliderSmooth');
+
+      function updateControls() {
+        const base = parseFloat(sliderBaseSens.value);
+        const p1y = parseFloat(sliderP1.value);
+        const p2y = parseFloat(sliderP2.value);
+        const maxV = parseFloat(sliderMaxVel.value);
+        const smooth = parseFloat(sliderSmooth.value);
+
+        document.getElementById('valBaseSens').textContent = base.toFixed(2) + 'x';
+        document.getElementById('valP1').textContent = p1y.toFixed(2);
+        document.getElementById('valP2').textContent = p2y.toFixed(2);
+        document.getElementById('valMaxVel').textContent = maxV.toFixed(1) + ' px/ms';
+        document.getElementById('valSmooth').textContent = Math.round(smooth * 100) + '%';
+
+        engine.updateConfig({
+          baseSensitivity: base,
+          bezierP1y: p1y,
+          bezierP2y: p2y,
+          maxVelocity: maxV,
+          smoothingAlpha: smooth
+        });
+
+        renderCurveGraph();
+      }
+
+      sliderBaseSens.addEventListener('input', updateControls);
+      sliderP1.addEventListener('input', updateControls);
+      sliderP2.addEventListener('input', updateControls);
+      sliderMaxVel.addEventListener('input', updateControls);
+      sliderSmooth.addEventListener('input', updateControls);
+
+      // Mode Toggles
+      const btnBezier = document.getElementById('btnModeBezier');
+      const btnLinear = document.getElementById('btnModeLinear');
+      const modeLabel = document.getElementById('modeLabel');
+
+      btnBezier.addEventListener('click', () => {
+        btnBezier.classList.add('active');
+        btnLinear.classList.remove('active');
+        modeLabel.textContent = 'Bézier Dinámico';
+        engine.updateConfig({ sensitivityMode: 'bezier' });
+        renderCurveGraph();
+      });
+
+      btnLinear.addEventListener('click', () => {
+        btnLinear.classList.add('active');
+        btnBezier.classList.remove('active');
+        modeLabel.textContent = 'Lineal Estándar';
+        engine.updateConfig({ sensitivityMode: 'linear' });
+        renderCurveGraph();
+      });
+
+      document.getElementById('btnReset').addEventListener('click', () => {
+        sliderBaseSens.value = 1.0;
+        sliderP1.value = 0.05;
+        sliderP2.value = 0.95;
+        sliderMaxVel.value = 4.5;
+        sliderSmooth.value = 0.72;
+        btnBezier.click();
+        updateControls();
+      });
+
+      document.getElementById('btnSaveConfig').addEventListener('click', () => {
+        localStorage.setItem('aimsens_config', JSON.stringify(engine.config));
+        alert('¡Configuración guardada con éxito en el dispositivo!');
+      });
+    });
+  </script>
+</body>
+</html>

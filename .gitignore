@@ -1,0 +1,21 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+
+# Capacitor / Android build outputs
+android/app/build/
+android/build/
+android/.gradle/
+android/app/release/
+*.apk
+*.aab
+
+# Web build directory
+www/
+
+# OS / IDE temp files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

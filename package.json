@@ -1,0 +1,27 @@
+{
+  "name": "aimsens-touch-engine",
+  "version": "1.0.0",
+  "description": "Dynamic low-latency touch sensitivity engine with Bézier curves and Oppo A58 optimizations.",
+  "main": "engine.js",
+  "scripts": {
+    "start": "npx http-server -p 8080",
+    "build": "mkdir -p www && cp index.html style.css engine.js engine.bundle.js sw.js manifest.json www/",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android"
+  },
+  "keywords": [
+    "pwa",
+    "touch-sensitivity",
+    "bezier-curves",
+    "capacitor",
+    "android",
+    "oppo-a58"
+  ],
+  "author": "AimSens Team",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^5.7.0",
+    "@capacitor/cli": "^5.7.0",
+    "@capacitor/core": "^5.7.0"
+  }
+}
