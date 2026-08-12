@@ -27,22 +27,36 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Install Dependencies
+        run: npm install
 
       - name: Prepare Web Assets
         run: |
           mkdir -p www
-          cp index.html style.css engine.js engine.bundle.js sw.js manifest.json www/
+          cp index.html style.css engine.js engine.bundle.js sw.js manifest.json icon-512.png icon-192.png www/ || true
 
-      - name: Sync Capacitor Android Project
-        run: npx cap sync android
+      - name: Initialize & Sync Capacitor Android
+        run: |
+          if [ ! -f "android/build.gradle" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
 
-      - name: Build Android APK (Debug / Release)
+      - name: Restore Custom Kotlin & Manifest files
+        run: |
+          mkdir -p android/app/src/main/java/com/aimsens/touchengine
+          cp -f android/app/src/main/java/com/aimsens/touchengine/TouchEnginePlugin.kt android/app/src/main/java/com/aimsens/touchengine/TouchEnginePlugin.kt || true
+          cp -f android/app/src/main/java/com/aimsens/touchengine/MainActivity.kt android/app/src/main/java/com/aimsens/touchengine/MainActivity.kt || true
+
+      - name: Make Gradle executable
         run: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          chmod +x gradlew || true
+
+      - name: Build Android APK with Gradle
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v3
